@@ -139,11 +139,14 @@ HSET netease:music:task <task_key> '{"phone": "13800138000", "password": "your_p
 | `PLAYWRIGHT_PROFILE_BASEDIR` | Playwright 用户数据目录（持久化登录态） | `.playwright_profiles` |
 | `PLAYWRIGHT_PROFILE_PER_USER` | 是否按账号分子目录（建议 `1`，避免多账号串 Cookie） | `1` |
 | `WECOM_WEBHOOK_KEY` | 企业微信机器人 Webhook 的 `key`，留空则不推送 | 空 |
-| `CUSTOM_WEBHOOK_URL` | 自定义 Webhook 完整地址，填写后优先推送到这里，未填写才推送企业微信 | 空 |
+| `CUSTOM_WEBHOOK_URL` | 自定义 Webhook 完整地址，填写后优先推送，未填写才推送企业微信 | 空 |
 | `CUSTOM_WEBHOOK_METHOD` | 自定义 Webhook 请求方法 | `POST` |
-| `CUSTOM_WEBHOOK_HEADERS` | 自定义 Webhook 请求头，支持 JSON 对象或 `Header: value;Header2: value2` | 空 |
+| `CUSTOM_WEBHOOK_HEADERS` | 自定义 Webhook 请求头 | 空 |
+| `CUSTOM_WEBHOOK_BODY` | 自定义请求体模板，`${title}` / `${content}` 自动替换 | 空 |
 | `COOKIE_EXPIRE_DAYS` | Cookie 写入 Redis 后的有效天数 | `7` |
 | `COOKIE_NOTIFY_BEFORE_DAYS` | Cookie 到期前多少天发送提醒 | `1` |
+
+> 📢 推送通知（Bark、飞书、钉钉、ntfy、企业微信等）的详细配置与示例见：[`docs/NOTIFY.md`](./docs/NOTIFY.md)
 
 示例：
 
@@ -364,6 +367,13 @@ MIT License
 ---
 
 ## 更新日志
+- v1.5.1
+  - 新增 `CUSTOM_WEBHOOK_BODY` 环境变量，支持自定义 Webhook 请求体模板
+    - 模板中 `${title}` 和 `${content}` 会自动替换为实际推送内容
+    - 例如 Bark 推送：`{"title":"${title}","body":"${content}"}`
+    - 留空则使用默认 payload（包含 event/title/content/timestamp 字段）
+  - 修复二次验证扫码通知中 `debug_phone` 变量未定义的问题
+
 - v1.5.0
   - 新增自定义 Webhook 通知，未配置时自动回退到企业微信通知
   - 登录触发扫码验证时，自动推送二维码链接

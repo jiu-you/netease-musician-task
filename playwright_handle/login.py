@@ -477,7 +477,7 @@ def solve_slider_captcha(page: Page | Frame, max_retry: int = 3, *, debug_phone:
         save_login_debug_screenshot(page, debug_phone, "slider_failed")
 
 
-def check_secondary_verification(page: Page | Frame, timeout: int = 10, *, auto_action: bool = True) -> bool:
+def check_secondary_verification(page: Page | Frame, timeout: int = 10, *, auto_action: bool = True, debug_phone: Optional[str] = None) -> bool:
     """
     检查是否需要二次验证（登录安全验证弹窗）。
     如果出现二次验证弹窗，记录日志并返回 True。
@@ -742,7 +742,7 @@ def browser_login(phone: str, password: str, profile_dir: str = PROFILE_DIR, hea
 
         # 滑块验证完成后，检查是否需要二次验证
         try:
-            needs_secondary = check_secondary_verification(page, timeout=10)
+            needs_secondary = check_secondary_verification(page, timeout=10, debug_phone=phone)
             if needs_secondary:
                 logger.warning("[登录] 检测到需要二次验证，等待用户手动完成...")
                 # 扫码验证：最多等 60 秒，每 5 秒检查一次；用户提前完成就立刻继续
@@ -755,7 +755,7 @@ def browser_login(phone: str, password: str, profile_dir: str = PROFILE_DIR, hea
                     scan_deadline = time.time() + 60
                     while time.time() < scan_deadline:
                         # 被动检测：不重复点击/不重复生成二维码
-                        still_needs_scan = check_secondary_verification(page, timeout=2, auto_action=False)
+                        still_needs_scan = check_secondary_verification(page, timeout=2, auto_action=False, debug_phone=phone)
                         if not still_needs_scan:
                             logger.info("[登录] 二次验证已完成（扫码），继续登录流程")
                             break
@@ -764,7 +764,7 @@ def browser_login(phone: str, password: str, profile_dir: str = PROFILE_DIR, hea
                 # 循环检查，最多等待 120 秒，直到二次验证弹窗消失（被动检测）
                 secondary_deadline = time.time() + 120
                 while time.time() < secondary_deadline:
-                    still_needs = check_secondary_verification(page, timeout=2, auto_action=False)
+                    still_needs = check_secondary_verification(page, timeout=2, auto_action=False, debug_phone=phone)
                     if not still_needs:
                         logger.info("[登录] 二次验证已完成，继续登录流程")
                         break

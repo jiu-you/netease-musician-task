@@ -122,6 +122,10 @@ CUSTOM_WEBHOOK_URL = os.getenv('CUSTOM_WEBHOOK_URL', '').strip()
 CUSTOM_WEBHOOK_METHOD = os.getenv('CUSTOM_WEBHOOK_METHOD', 'POST').strip().upper() or 'POST'
 # 自定义请求头，支持 JSON 对象或用英文分号分隔的 "Header: value" 列表。
 CUSTOM_WEBHOOK_HEADERS = os.getenv('CUSTOM_WEBHOOK_HEADERS', '').strip()
+# 自定义请求 Body 模板，支持 JSON 格式字符串，使用 ${title} 和 ${content} 作为占位符自动替换。
+# 例如：{"title":"${title}","content":"${content}"}
+# 留空则使用默认 payload（包含 event/title/content/timestamp 等字段）。
+CUSTOM_WEBHOOK_BODY = os.getenv('CUSTOM_WEBHOOK_BODY', '').strip()
 
 # ========== Cookie 过期提醒 ==========
 # Cookie 写入 Redis 后的有效天数。

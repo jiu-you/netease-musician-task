@@ -9,12 +9,14 @@ try:
         CUSTOM_WEBHOOK_HEADERS,
         CUSTOM_WEBHOOK_METHOD,
         CUSTOM_WEBHOOK_URL,
+        CUSTOM_WEBHOOK_BODY,
         WECOM_WEBHOOK_KEY,
     )
 except Exception:
     CUSTOM_WEBHOOK_HEADERS = ""
     CUSTOM_WEBHOOK_METHOD = "POST"
     CUSTOM_WEBHOOK_URL = ""
+    CUSTOM_WEBHOOK_BODY = ""
     WECOM_WEBHOOK_KEY = ""
 
 
@@ -132,10 +134,13 @@ def send_custom_webhook(
     if not webhook_url:
         return False
 
+    title_str = title or "网易音乐人任务"
+    content_str = content or ""
+
     payload = {
         "event": event,
-        "title": title or "网易音乐人任务",
-        "content": content or "",
+        "title": title_str,
+        "content": content_str,
         "timestamp": datetime.now().isoformat(timespec="seconds"),
     }
     if extra:
@@ -144,16 +149,30 @@ def send_custom_webhook(
     headers = _parse_custom_headers(CUSTOM_WEBHOOK_HEADERS)
     headers.setdefault("Content-Type", "application/json")
 
+    # 自定义 Body 模板：若配置了 CUSTOM_WEBHOOK_BODY，则用模板渲染后作为请求体，
+    # 否则使用默认 payload。模板中 ${title} 和 ${content} 会被自动替换。
+    if CUSTOM_WEBHOOK_BODY:
+        rendered = CUSTOM_WEBHOOK_BODY.replace("${title}", title_str).replace("${content}", content_str)
+        try:
+            body_data = json.loads(rendered)
+        except Exception:
+            body_data = rendered
+    else:
+        body_data = payload
+
     try:
         if CUSTOM_WEBHOOK_METHOD == "GET":
-            resp = requests.get(webhook_url, params=payload, headers=headers, timeout=timeout)
+            resp = requests.get(webhook_url, params=body_data if isinstance(body_data, dict) else payload, headers=headers, timeout=timeout)
         else:
+            req_kwargs = (
+                {"json": body_data} if isinstance(body_data, dict) else {"data": body_data.encode()}
+            )
             resp = requests.request(
                 CUSTOM_WEBHOOK_METHOD or "POST",
                 webhook_url,
-                json=payload,
                 headers=headers,
                 timeout=timeout,
+                **req_kwargs,
             )
         return 200 <= resp.status_code < 300
     except Exception:

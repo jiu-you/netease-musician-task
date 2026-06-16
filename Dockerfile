@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir \
     --trusted-host mirrors.aliyun.com \
     -r requirements.txt
 ENV PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright/
-RUN python -m playwright install chromium
+RUN python -m playwright install chromium-headless-shell
 
 # ---------- 阶段 2：最终运行镜像 ----------
 FROM python:3.12-slim
